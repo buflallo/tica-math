@@ -4,10 +4,20 @@ import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'fs'
 import path from 'path'
 
+const normalizeBasePath = (value?: string): string | undefined => {
+  if (!value) return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  const withLeading = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  return withLeading.endsWith('/') ? withLeading : `${withLeading}/`
+}
+
+const basePath = normalizeBasePath(process.env.BASE_PATH || process.env.VITE_BASE_PATH)
+
 export default defineConfig({
   root: 'src',
   publicDir: 'assets',
-  base: process.env.NODE_ENV === 'production' ? '/tica-math/' : '/', // GitHub Pages路径
+  base: process.env.NODE_ENV === 'production' ? basePath || './' : '/',
   build: {
     outDir: '../dist',
     emptyOutDir: true,
