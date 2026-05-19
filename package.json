@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "node start-server.js",
     "serve": "node start-server.js",
     "serve:8000": "node start-server.js 8000",
     "test": "jest",
@@ -26,6 +27,9 @@
   ],
   "author": "Tica Detective Agency",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@types/jest": "^29.5.0",
