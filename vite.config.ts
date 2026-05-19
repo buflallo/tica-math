@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { resolve } from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'fs'
@@ -12,12 +12,14 @@ const normalizeBasePath = (value?: string): string | undefined => {
   return withLeading.endsWith('/') ? withLeading : `${withLeading}/`
 }
 
-const basePath = normalizeBasePath(process.env.BASE_PATH || process.env.VITE_BASE_PATH)
+export default defineConfig(({ command, mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const basePath = normalizeBasePath(env.BASE_PATH || env.VITE_BASE_PATH)
 
-export default defineConfig({
-  root: 'src',
-  publicDir: 'assets',
-  base: process.env.NODE_ENV === 'production' ? basePath || './' : '/',
+  return {
+    root: 'src',
+    publicDir: 'assets',
+    base: command === 'build' ? basePath || './' : '/',
   build: {
     outDir: '../dist',
     emptyOutDir: true,
@@ -53,8 +55,8 @@ export default defineConfig({
   optimizeDeps: {
     include: ['phaser']
   },
-  plugins: [
-    VitePWA({
+    plugins: [
+      VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'robots.txt'],
       strategies: 'generateSW',
@@ -98,36 +100,37 @@ export default defineConfig({
         lang: 'zh-CN'
       }
     }),
-    {
-      name: 'copy-game-config',
-      closeBundle() {
-        // 复制游戏配置文件
-        const configDir = path.join(__dirname, 'src/game/config');
-        const targetDir = path.join(__dirname, 'dist/game/config');
+      {
+        name: 'copy-game-config',
+        closeBundle() {
+          // 复制游戏配置文件
+          const configDir = path.join(__dirname, 'src/game/config');
+          const targetDir = path.join(__dirname, 'dist/game/config');
 
-        // 确保目标目录存在
-        if (!fs.existsSync(targetDir)) {
-          fs.mkdirSync(targetDir, { recursive: true });
-        }
+          // 确保目标目录存在
+          if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, { recursive: true });
+          }
 
-        // 复制所有 JSON 配置文件（自动检测目录中的 *.json 文件）
-        try {
-          const files = fs.readdirSync(configDir);
-          files.forEach(file => {
-            // 只复制 .json 文件
-            if (file.endsWith('.json')) {
-              const srcPath = path.join(configDir, file);
-              const destPath = path.join(targetDir, file);
-              if (fs.existsSync(srcPath)) {
-                fs.copyFileSync(srcPath, destPath);
-                console.log(`✅ 复制配置文件: ${file}`);
+          // 复制所有 JSON 配置文件（自动检测目录中的 *.json 文件）
+          try {
+            const files = fs.readdirSync(configDir);
+            files.forEach(file => {
+              // 只复制 .json 文件
+              if (file.endsWith('.json')) {
+                const srcPath = path.join(configDir, file);
+                const destPath = path.join(targetDir, file);
+                if (fs.existsSync(srcPath)) {
+                  fs.copyFileSync(srcPath, destPath);
+                  console.log(`✅ 复制配置文件: ${file}`);
+                }
               }
-            }
-          });
-        } catch (error) {
-          console.error('❌ 复制配置文件时出错:', error);
+            });
+          } catch (error) {
+            console.error('❌ 复制配置文件时出错:', error);
+          }
         }
       }
-    }
-  ]
+    ]
+  }
 })
